@@ -39,11 +39,12 @@ public class SGSSavingsTrackerPlugin extends Plugin {
     @Override
     protected void startUp() throws Exception {
         specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
-        System.out.println(specPercent);
     }
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
+        System.out.println(event.getSkill().getName() + " changed to " + event.getBoostedLevel() +
+                " on tick " + client.getTickCount());
         if (client.getTickCount() != specTick) {
             return;
         }
@@ -95,8 +96,9 @@ public class SGSSavingsTrackerPlugin extends Plugin {
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged gameStateChanged) {
-        if (gameStateChanged.getGameState() == GameState.LOGGING_IN) {
-        }
+        System.out.println(gameStateChanged.getGameState());
+//        if (gameStateChanged.getGameState() == GameState.LOGGING_IN) {
+//        }
     }
 
     @Provides
