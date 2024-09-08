@@ -4,6 +4,7 @@ import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
@@ -13,6 +14,8 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 import javax.inject.Inject;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 @Slf4j
 @PluginDescriptor(
@@ -31,34 +34,18 @@ public class SGSSavingsTrackerPlugin extends Plugin {
     // SGS: 11806
     public static final int SPEC_ITEM_ID = 11061;
 
+    private Restore currentRestore;
+
+    int totalPrayerSaved = 0;
+    int totalHpSaved = 0;
+
     int specPercent;
-    int specTick;
     int previousPrayer;
-    int previousHP;
+    int previousHp;
 
     @Override
     protected void startUp() throws Exception {
         specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
-    }
-
-    @Subscribe
-    public void onStatChanged(StatChanged event) {
-        System.out.println(event.getSkill().getName() + " changed to " + event.getBoostedLevel() +
-                " on tick " + client.getTickCount());
-        if (client.getTickCount() != specTick) {
-            return;
-        }
-
-        switch (event.getSkill()) {
-            case PRAYER:
-                System.out.println("Prayer gain: " + (event.getBoostedLevel() - previousPrayer));
-                System.out.println("tick: " + client.getTickCount());
-                break;
-            case HITPOINTS:
-                System.out.println("HP gain: " + (event.getBoostedLevel() - previousHP));
-                System.out.println("tick: " + client.getTickCount());
-                break;
-        }
     }
 
     @Subscribe
@@ -73,15 +60,47 @@ public class SGSSavingsTrackerPlugin extends Plugin {
         }
         this.specPercent = event.getValue();
 
-        if (!wieldingSGS()) {
+//        if (!wieldingSGS()) {
+//            return;
+//        }
+
+        currentRestore = new Restore(
+                client.getTickCount(),
+                client.getBoostedSkillLevel(Skill.HITPOINTS),
+                client.getBoostedSkillLevel(Skill.PRAYER));
+
+    }
+
+    @Subscribe
+    public void onStatChanged(StatChanged event) {
+        if (client.getTickCount() != currentRestore.getSpecTick()) {
             return;
         }
 
-        specTick = client.getTickCount();
-        previousPrayer = client.getBoostedSkillLevel(Skill.PRAYER);
-        previousHP = client.getBoostedSkillLevel(Skill.HITPOINTS);
+        int newLevel = event.getBoostedLevel();
 
-        System.out.println("SGS Spec Used. Tick: " + specTick);
+        switch (event.getSkill()) {
+            case HITPOINTS:
+                currentRestore.setActualHitpoints(newLevel - currentRestore.getPreviousHitpoints());
+                break;
+            case PRAYER:
+                currentRestore.setActualPrayer(newLevel - currentRestore.getPreviousPrayer());
+                break;
+        }
+    }
+
+    @Subscribe
+    public void onHitsplatApplied(HitsplatApplied event) {
+        if (!event.getHitsplat().isMine() || event.getActor() == client.getLocalPlayer()) {
+            return;
+        }
+
+        if (client.getTickCount() != currentRestore.getSpecTick() + 1) {
+            return;
+        }
+
+        currentRestore.computeExpected(event.getHitsplat().getAmount());
+        currentRestore.computeSaved();
     }
 
     private boolean wieldingSGS() {
@@ -91,18 +110,20 @@ public class SGSSavingsTrackerPlugin extends Plugin {
         }
 
         Item weaponSlotItem = equipmentItemContainer.getItem(EquipmentInventorySlot.WEAPON.getSlotIdx());
-        return (weaponSlotItem != null ? weaponSlotItem.getId() : 0) == SPEC_ITEM_ID;
-    }
+        if (weaponSlotItem == null) {
+            return false;
+        }
 
-    @Subscribe
-    public void onGameStateChanged(GameStateChanged gameStateChanged) {
-        System.out.println(gameStateChanged.getGameState());
-//        if (gameStateChanged.getGameState() == GameState.LOGGING_IN) {
-//        }
+        return weaponSlotItem.getId() == SPEC_ITEM_ID;
     }
 
     @Provides
     SGSSavingsTrackerConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(SGSSavingsTrackerConfig.class);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+
     }
 }
