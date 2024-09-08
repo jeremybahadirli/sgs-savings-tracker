@@ -121,9 +121,4 @@ public class SGSSavingsTrackerPlugin extends Plugin {
     SGSSavingsTrackerConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(SGSSavingsTrackerConfig.class);
     }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-
-    }
 }
