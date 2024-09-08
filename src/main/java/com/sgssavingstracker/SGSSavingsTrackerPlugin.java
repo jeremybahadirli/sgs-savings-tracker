@@ -71,13 +71,12 @@ public class SGSSavingsTrackerPlugin extends Plugin {
 
     @Subscribe
     public void onStatChanged(StatChanged event) {
+        System.out.println(event.getSkill() + "changed to " + newLevel + " on tick " + client.getTickCount());
         if (client.getTickCount() != currentRestore.getSpecTick()) {
             return;
         }
 
         int newLevel = event.getBoostedLevel();
-
-        System.out.println(event.getSkill() + "changed to " + newLevel + " on tick " + client.getTickCount());
 
         switch (event.getSkill()) {
             case HITPOINTS:
