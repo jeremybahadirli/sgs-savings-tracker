@@ -40,8 +40,6 @@ public class SGSSavingsTrackerPlugin extends Plugin {
     int totalHpSaved = 0;
 
     int specPercent;
-    int previousPrayer;
-    int previousHp;
 
     @Override
     protected void startUp() throws Exception {
@@ -78,6 +76,8 @@ public class SGSSavingsTrackerPlugin extends Plugin {
         }
 
         int newLevel = event.getBoostedLevel();
+
+        System.out.println(event.getSkill() + "changed to " + newLevel + " on tick " + client.getTickCount());
 
         switch (event.getSkill()) {
             case HITPOINTS:
