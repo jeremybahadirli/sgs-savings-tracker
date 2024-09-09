@@ -4,7 +4,8 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 
 @ConfigGroup("sgssavingstracker")
-public interface SGSSavingsTrackerConfig extends Config {
+public interface SGSSavingsTrackerConfig extends Config
+{
 //	@ConfigItem(
 //		keyName = "greeting",
 //		name = "Welcome Greeting",
