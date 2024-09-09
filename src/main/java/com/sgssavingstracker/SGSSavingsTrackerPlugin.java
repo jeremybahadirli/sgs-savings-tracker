@@ -1,123 +1,181 @@
 package com.sgssavingstracker;
 
 import com.google.inject.Provides;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.Client;
+import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.Skill;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ClientShutdown;
+import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-import javax.inject.Inject;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 @Slf4j
-@PluginDescriptor(
-        name = "SGS Savings Tracker"
-)
-public class SGSSavingsTrackerPlugin extends Plugin {
-    @Inject
-    private Client client;
+@PluginDescriptor(name = "SGS Savings Tracker")
+public class SGSSavingsTrackerPlugin extends Plugin
+{
+	// SGS: 11806
+	public static final int SGS_ITEM_ID = 11806;
+	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
+	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
+	public static final String CONFIG_PRAYER_KEY = "prayerSaved";
 
-    @Inject
-    private SGSSavingsTrackerConfig config;
+	private RestoreOccurrence currentRestoreOccurrence;
 
-    @Inject
-    private ItemManager itemManager;
+	private int hitpointsSaved;
+	private int prayerSaved;
+	private int specPercent;
 
-    // SGS: 11806
-    public static final int SPEC_ITEM_ID = 11061;
+	@Inject
+	private Client client;
 
-    private Restore currentRestore;
+	@Inject
+	private SGSSavingsTrackerConfig config;
 
-    int totalPrayerSaved = 0;
-    int totalHpSaved = 0;
+	@Inject
+	private ConfigManager configManager;
 
-    int specPercent;
+	@Inject
+	private ItemManager itemManager;
 
-    @Override
-    protected void startUp() throws Exception {
-        specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
-    }
+	@Override
+	protected void startUp()
+	{
+		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
+		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
 
-    @Subscribe
-    public void onVarbitChanged(VarbitChanged event) {
-        if (event.getVarpId() != VarPlayer.SPECIAL_ATTACK_PERCENT) {
-            return;
-        }
+		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
+		prayerSaved = (configPrayer != null) ? configPrayer : 0;
 
-        if (event.getValue() >= this.specPercent) {
-            this.specPercent = event.getValue();
-            return;
-        }
-        this.specPercent = event.getValue();
+		// TODO: Make sure spec loading is robust
+		specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
+	}
 
-//        if (!wieldingSGS()) {
-//            return;
-//        }
+	@Override
+	protected void shutDown()
+	{
+		saveData();
+	}
 
-        currentRestore = new Restore(
-                client.getTickCount(),
-                client.getBoostedSkillLevel(Skill.HITPOINTS),
-                client.getBoostedSkillLevel(Skill.PRAYER));
+	@Subscribe
+	public void onClientShutdown(ClientShutdown event)
+	{
+		saveData();
+	}
 
-    }
+	private void saveData()
+	{
+		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
+		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
+	}
 
-    @Subscribe
-    public void onStatChanged(StatChanged event) {
-        System.out.println(event.getSkill() + "changed to " + newLevel + " on tick " + client.getTickCount());
-        if (client.getTickCount() != currentRestore.getSpecTick()) {
-            return;
-        }
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged event)
+	{
+		if (event.getVarpId() != VarPlayer.SPECIAL_ATTACK_PERCENT)
+		{
+			return;
+		}
 
-        int newLevel = event.getBoostedLevel();
+		if (event.getValue() >= this.specPercent)
+		{
+			this.specPercent = event.getValue();
+			return;
+		}
+		this.specPercent = event.getValue();
 
-        switch (event.getSkill()) {
-            case HITPOINTS:
-                currentRestore.setActualHitpoints(newLevel - currentRestore.getPreviousHitpoints());
-                break;
-            case PRAYER:
-                currentRestore.setActualPrayer(newLevel - currentRestore.getPreviousPrayer());
-                break;
-        }
-    }
+		if (!wieldingSGS())
+		{
+			return;
+		}
 
-    @Subscribe
-    public void onHitsplatApplied(HitsplatApplied event) {
-        if (!event.getHitsplat().isMine() || event.getActor() == client.getLocalPlayer()) {
-            return;
-        }
+		currentRestoreOccurrence = new RestoreOccurrence(
+			client.getTickCount(),
+			client.getBoostedSkillLevel(Skill.HITPOINTS),
+			client.getBoostedSkillLevel(Skill.PRAYER));
 
-        if (client.getTickCount() != currentRestore.getSpecTick() + 1) {
-            return;
-        }
+	}
 
-        currentRestore.computeExpected(event.getHitsplat().getAmount());
-        currentRestore.computeSaved();
-    }
+	@Subscribe
+	public void onStatChanged(StatChanged event)
+	{
+		if (currentRestoreOccurrence == null || client.getTickCount() != currentRestoreOccurrence.getSpecTick())
+		{
+			return;
+		}
 
-    private boolean wieldingSGS() {
-        final ItemContainer equipmentItemContainer = client.getItemContainer(InventoryID.EQUIPMENT);
-        if (equipmentItemContainer == null) {
-            return false;
-        }
+		int newLevel = event.getBoostedLevel();
 
-        Item weaponSlotItem = equipmentItemContainer.getItem(EquipmentInventorySlot.WEAPON.getSlotIdx());
-        if (weaponSlotItem == null) {
-            return false;
-        }
+		switch (event.getSkill())
+		{
+			case HITPOINTS:
+				currentRestoreOccurrence.setActualHitpoints(newLevel - currentRestoreOccurrence.getPreviousHitpoints());
+				break;
+			case PRAYER:
+				currentRestoreOccurrence.setActualPrayer(newLevel - currentRestoreOccurrence.getPreviousPrayer());
+				break;
+		}
+	}
 
-        return weaponSlotItem.getId() == SPEC_ITEM_ID;
-    }
+	@Subscribe
+	public void onHitsplatApplied(HitsplatApplied event)
+	{
+		if (!event.getHitsplat().isMine() || event.getActor() == client.getLocalPlayer())
+		{
+			return;
+		}
 
-    @Provides
-    SGSSavingsTrackerConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(SGSSavingsTrackerConfig.class);
-    }
+		if (currentRestoreOccurrence == null || client.getTickCount() != currentRestoreOccurrence.getSpecTick() + 1)
+		{
+			return;
+		}
+
+		currentRestoreOccurrence.computeExpected(event.getHitsplat().getAmount());
+		currentRestoreOccurrence.computeSaved();
+
+		hitpointsSaved += currentRestoreOccurrence.getSavedHitpoints();
+		prayerSaved += currentRestoreOccurrence.getSavedPrayer();
+	}
+
+	@Subscribe
+	public void onScreenshotTaken(ScreenshotTaken event)
+	{
+		hitpointsSaved++;
+		prayerSaved++;
+		System.out.println(hitpointsSaved + " " + prayerSaved);
+	}
+
+	private boolean wieldingSGS()
+	{
+		final ItemContainer equipmentItemContainer = client.getItemContainer(InventoryID.EQUIPMENT);
+		if (equipmentItemContainer == null)
+		{
+			return false;
+		}
+
+		Item weaponSlotItem = equipmentItemContainer.getItem(EquipmentInventorySlot.WEAPON.getSlotIdx());
+		if (weaponSlotItem == null)
+		{
+			return false;
+		}
+
+		return weaponSlotItem.getId() == SGS_ITEM_ID;
+	}
+
+	@Provides
+	SGSSavingsTrackerConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SGSSavingsTrackerConfig.class);
+	}
 }
