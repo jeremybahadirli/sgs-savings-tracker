@@ -1,6 +1,8 @@
 package com.sgssavingstracker;
 
 import javax.inject.Inject;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EquipmentInventorySlot;
@@ -42,7 +44,11 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 	private RestoreOccurrence currentRestoreOccurrence;
 
+	private SGSSavingsTrackerPanel panel;
+
+	@Getter
 	private int hitpointsSaved;
+	@Getter
 	private int prayerSaved;
 	private int specPercent;
 
@@ -61,7 +67,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		SGSSavingsTrackerPanel panel = new SGSSavingsTrackerPanel();
+		panel = new SGSSavingsTrackerPanel(this);
 
 		NavigationButton navButton = NavigationButton.builder()
 			.panel(panel)
@@ -70,13 +76,6 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			.priority(5)
 			.build();
 		clientToolbar.addNavigation(navButton);
-
-		Integer configHitpoints = configManager.getConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
-		Integer configPrayer = configManager.getConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
-		System.out.println(configHitpoints);
-		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
-		System.out.println(hitpointsSaved);
-		prayerSaved = (configPrayer != null) ? configPrayer : 0;
 
 		// TODO: Make sure spec loading is robust
 		specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
@@ -96,8 +95,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 	private void saveData()
 	{
-		configManager.setConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
-		configManager.setConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
+		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
+		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
 		System.out.println("saved");
 	}
 
@@ -161,6 +160,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 		hitpointsSaved += currentRestoreOccurrence.getSavedHitpoints();
 		prayerSaved += currentRestoreOccurrence.getSavedPrayer();
+
+		panel.setValues(hitpointsSaved, prayerSaved);
 	}
 
 	@Subscribe
@@ -183,7 +184,15 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Subscribe
 	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
 	{
-		System.out.println("CHAGE: " + event.toString());
+		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
+		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
+		System.out.println(configHitpoints);
+		System.out.println(configPrayer);
+		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
+		prayerSaved = (configPrayer != null) ? configPrayer : 0;
+		System.out.println(hitpointsSaved);
+		System.out.println(prayerSaved);
+		panel.setValues(hitpointsSaved, prayerSaved);
 	}
 
 	private boolean playerIsWieldingSGS()
