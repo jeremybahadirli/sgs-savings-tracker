@@ -1,28 +1,37 @@
 package com.sgssavingstracker;
 
-import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.VarPlayer;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ClientShutdown;
+import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 @Slf4j
-@PluginDescriptor(name = "SGS Savings Tracker")
+@PluginDescriptor(
+	name = "SGS Savings Tracker",
+	description = "Track Hitpoints and Prayer saved by using the SGS Special Attack.",
+	tags = {"saradomin", "godsword", "hitpoints", "hp", "prayer", "pp"}
+)
 public class SGSSavingsTrackerPlugin extends Plugin
 {
 	// SGS: 11806
@@ -41,7 +50,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private SGSSavingsTrackerConfig config;
+	private ClientToolbar clientToolbar;
 
 	@Inject
 	private ConfigManager configManager;
@@ -52,10 +61,21 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
-		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
+		SGSSavingsTrackerPanel panel = new SGSSavingsTrackerPanel();
 
-		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
+		NavigationButton navButton = NavigationButton.builder()
+			.panel(panel)
+			.tooltip("SGS Savings Tracker")
+			.icon(ImageUtil.loadImageResource(getClass(), "/sgs_icon.png"))
+			.priority(5)
+			.build();
+		clientToolbar.addNavigation(navButton);
+
+		Integer configHitpoints = configManager.getConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
+		Integer configPrayer = configManager.getConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
+		System.out.println(configHitpoints);
+		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
+		System.out.println(hitpointsSaved);
 		prayerSaved = (configPrayer != null) ? configPrayer : 0;
 
 		// TODO: Make sure spec loading is robust
@@ -76,8 +96,9 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 	private void saveData()
 	{
-		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
-		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
+		configManager.setConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
+		configManager.setConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
+		System.out.println("saved");
 	}
 
 	@Subscribe
@@ -88,14 +109,10 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			return;
 		}
 
-		if (event.getValue() >= this.specPercent)
-		{
-			this.specPercent = event.getValue();
-			return;
-		}
+		int previousSpecPercent = this.specPercent;
 		this.specPercent = event.getValue();
 
-		if (!wieldingSGS())
+		if (this.specPercent >= previousSpecPercent || !playerIsWieldingSGS())
 		{
 			return;
 		}
@@ -104,7 +121,6 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			client.getTickCount(),
 			client.getBoostedSkillLevel(Skill.HITPOINTS),
 			client.getBoostedSkillLevel(Skill.PRAYER));
-
 	}
 
 	@Subscribe
@@ -116,7 +132,6 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		}
 
 		int newLevel = event.getBoostedLevel();
-
 		switch (event.getSkill())
 		{
 			case HITPOINTS:
@@ -153,10 +168,25 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	{
 		hitpointsSaved++;
 		prayerSaved++;
+		// TODO: Delete logs
 		System.out.println(hitpointsSaved + " " + prayerSaved);
 	}
 
-	private boolean wieldingSGS()
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	{
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
+		{
+		}
+	}
+
+	@Subscribe
+	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
+	{
+		System.out.println("CHAGE: " + event.toString());
+	}
+
+	private boolean playerIsWieldingSGS()
 	{
 		final ItemContainer equipmentItemContainer = client.getItemContainer(InventoryID.EQUIPMENT);
 		if (equipmentItemContainer == null)
@@ -171,11 +201,5 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		}
 
 		return weaponSlotItem.getId() == SGS_ITEM_ID;
-	}
-
-	@Provides
-	SGSSavingsTrackerConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(SGSSavingsTrackerConfig.class);
 	}
 }

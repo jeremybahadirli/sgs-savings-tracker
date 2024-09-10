@@ -1,3 +1,3 @@
 # SGS Savings Tracker
 
-Tracks GP saved by using the SGS Special Attack.
+Track Hitpoints and Prayer saved by using the SGS Special Attack.
