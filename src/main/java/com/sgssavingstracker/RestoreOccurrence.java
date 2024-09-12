@@ -40,8 +40,5 @@ public class RestoreOccurrence
 	{
 		savedHitpoints = Math.min(actualHitpoints, expectedHitpoints);
 		savedPrayer = Math.min(actualPrayer, expectedPrayer);
-		// TODO: Delete logs
-		System.out.println("Hitpoints\t--- Actual: " + actualHitpoints + ", Expected: " + expectedHitpoints + ", Saved: " + savedHitpoints);
-		System.out.println("Prayer\t--- Actual: " + actualPrayer + ", Expected: " + expectedPrayer + ", Saved: " + savedPrayer);
 	}
 }

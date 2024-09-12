@@ -1,7 +1,6 @@
 package com.sgssavingstracker;
 
 import javax.inject.Inject;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -20,7 +19,6 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ClientShutdown;
 import net.runelite.client.events.RuneScapeProfileChanged;
-import net.runelite.client.events.ScreenshotTaken;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -41,33 +39,26 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
 	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
 	public static final String CONFIG_PRAYER_KEY = "prayerSaved";
-
 	private RestoreOccurrence currentRestoreOccurrence;
-
 	private SGSSavingsTrackerPanel panel;
-
 	@Getter
 	private int hitpointsSaved;
 	@Getter
 	private int prayerSaved;
 	private int specPercent;
-
 	@Inject
 	private Client client;
-
 	@Inject
 	private ClientToolbar clientToolbar;
-
 	@Inject
 	private ConfigManager configManager;
-
 	@Inject
 	private ItemManager itemManager;
 
 	@Override
 	protected void startUp()
 	{
-		panel = new SGSSavingsTrackerPanel(this);
+		panel = new SGSSavingsTrackerPanel();
 
 		NavigationButton navButton = NavigationButton.builder()
 			.panel(panel)
@@ -161,16 +152,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		hitpointsSaved += currentRestoreOccurrence.getSavedHitpoints();
 		prayerSaved += currentRestoreOccurrence.getSavedPrayer();
 
-		panel.setValues(hitpointsSaved, prayerSaved);
-	}
-
-	@Subscribe
-	public void onScreenshotTaken(ScreenshotTaken event)
-	{
-		hitpointsSaved++;
-		prayerSaved++;
-		// TODO: Delete logs
-		System.out.println(hitpointsSaved + " " + prayerSaved);
+		panel.setHitpoints(hitpointsSaved);
+		panel.setPrayer(prayerSaved);
 	}
 
 	@Subscribe
@@ -186,13 +169,10 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	{
 		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
 		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
-		System.out.println(configHitpoints);
-		System.out.println(configPrayer);
 		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
 		prayerSaved = (configPrayer != null) ? configPrayer : 0;
-		System.out.println(hitpointsSaved);
-		System.out.println(prayerSaved);
-		panel.setValues(hitpointsSaved, prayerSaved);
+		panel.setHitpoints(hitpointsSaved);
+		panel.setPrayer(prayerSaved);
 	}
 
 	private boolean playerIsWieldingSGS()
