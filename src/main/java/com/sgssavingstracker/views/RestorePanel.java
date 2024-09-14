@@ -18,13 +18,13 @@ public class RestorePanel extends JPanel
 	{
 		setLayout(new GridBagLayout());
 
-		JPanel vSpacer1 = new JPanel();
-		vSpacer1.setPreferredSize(new Dimension(0, 32));
+		JPanel spacerTop = new JPanel();
+		spacerTop.setPreferredSize(new Dimension(0, 32));
 		GridBagConstraints c0 = new GridBagConstraints();
 		c0.gridx = 0;
 		c0.gridy = 0;
 		c0.weighty = 1;
-		add(vSpacer1, c0);
+		add(spacerTop, c0);
 
 		BufferedImage hitpointsIcon = ImageUtil.loadImageResource(getClass(), "/hitpoints_icon.png");
 		hitpointsPanel = new StatPanel(hitpointsIcon);
@@ -34,29 +34,29 @@ public class RestorePanel extends JPanel
 		c1.weightx = 0.5;
 		add(hitpointsPanel, c1);
 
-		JPanel vSpacer2 = new JPanel();
-		vSpacer2.setPreferredSize(new Dimension(0, 32));
-		GridBagConstraints c3 = new GridBagConstraints();
-		c3.gridx = 0;
-		c3.gridy = 3;
-		c3.weighty = 1;
-		add(vSpacer2, c3);
+		JPanel spacerBottom = new JPanel();
+		spacerBottom.setPreferredSize(new Dimension(0, 32));
+		GridBagConstraints c2 = new GridBagConstraints();
+		c2.gridx = 0;
+		c2.gridy = 3;
+		c2.weighty = 1;
+		add(spacerBottom, c2);
 
 		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
-		GridBagConstraints c4 = new GridBagConstraints();
-		c4.gridx = 1;
-		c4.gridy = 0;
-		c4.gridheight = 4;
-		c4.fill = GridBagConstraints.BOTH;
-		add(separator, c4);
+		GridBagConstraints c3 = new GridBagConstraints();
+		c3.gridx = 1;
+		c3.gridy = 0;
+		c3.gridheight = 4;
+		c3.fill = GridBagConstraints.BOTH;
+		add(separator, c3);
 
 		BufferedImage prayerIcon = ImageUtil.loadImageResource(getClass(), "/prayer_icon.png");
 		prayerPanel = new StatPanel(prayerIcon);
-		GridBagConstraints c5 = new GridBagConstraints();
-		c5.gridx = 2;
-		c5.gridy = 1;
-		c5.weightx = 0.5;
-		add(prayerPanel, c5);
+		GridBagConstraints c4 = new GridBagConstraints();
+		c4.gridx = 2;
+		c4.gridy = 1;
+		c4.weightx = 0.5;
+		add(prayerPanel, c4);
 	}
 
 	public void setHitpoints(int hitpoints)

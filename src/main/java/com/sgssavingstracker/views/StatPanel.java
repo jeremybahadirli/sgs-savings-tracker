@@ -13,7 +13,7 @@ import net.runelite.client.ui.ColorScheme;
 public class StatPanel extends JPanel
 {
 	NumberFormat formatter = NumberFormat.getInstance();
-	JLabel valueLabel = new JLabel();
+	JLabel valueLabel;
 
 	public StatPanel(BufferedImage image)
 	{
@@ -25,6 +25,7 @@ public class StatPanel extends JPanel
 		iconLabel.setBorder(new EmptyBorder(8, 8, 8, 8));
 		add(iconLabel, BorderLayout.PAGE_START);
 
+		valueLabel = new JLabel();
 		valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		setValue(0);
 		add(valueLabel, BorderLayout.PAGE_END);
@@ -32,7 +33,6 @@ public class StatPanel extends JPanel
 
 	public void setValue(int value)
 	{
-		System.out.println("updateing: " + formatter.format(value));
 		valueLabel.setText(formatter.format(value));
 	}
 }

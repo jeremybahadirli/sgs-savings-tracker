@@ -1,21 +1,32 @@
 package com.sgssavingstracker;
 
 import com.sgssavingstracker.views.RestorePanel;
+import com.sgssavingstracker.views.SavingsPanel;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.beans.PropertyChangeEvent;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
 
 public class SGSSavingsTrackerPanel extends PluginPanel
 {
-	RestorePanel restorePanel = new RestorePanel();
+	Stats stats;
+	RestorePanel restorePanel;
+	SavingsPanel savingsPanel;
 
-	SGSSavingsTrackerPanel()
+	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager)
+	{
+		this.stats = stats;
+		initView(itemManager);
+	}
+
+	private void initView(ItemManager itemManager)
 	{
 		getParent().setLayout(new BorderLayout());
 		getParent().add(this, BorderLayout.CENTER);
@@ -31,22 +42,27 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		c0.weightx = 1;
 		add(titlePanel, c0);
 
+		restorePanel = new RestorePanel();
 		restorePanel.setMinimumSize(restorePanel.getPreferredSize());
 		GridBagConstraints c1 = new GridBagConstraints();
 		c1.gridy = 1;
 		c1.weightx = 1;
-		c0.weighty = 0.25;
 		c1.fill = GridBagConstraints.BOTH;
-		c1.insets = new Insets(40, 0, 0, 0);
+		c1.insets = new Insets(32, 0, 32, 0);
 		add(restorePanel, c1);
 
+		savingsPanel = new SavingsPanel(itemManager);
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridy = 3;
+		c.weightx = 1;
+		c.fill = GridBagConstraints.BOTH;
+		add(savingsPanel, c);
+
 		JPanel spacer = new JPanel();
-		GridBagConstraints c2 = new GridBagConstraints();
-		c2.gridy = 2;
-		c2.weighty = 1;
-		c2.weightx = 1;
-		c2.fill = GridBagConstraints.BOTH;
-		add(spacer, c2);
+		GridBagConstraints c4 = new GridBagConstraints();
+		c4.gridy = 4;
+		c4.weighty = 1;
+		add(spacer, c4);
 
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(event -> {
@@ -56,26 +72,41 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 				null, new String[]{"Yes", "No"}, "No");
 			if (result == JOptionPane.YES_OPTION)
 			{
-				// TODO: Implement Reset
+				resetClicked();
 			}
 		});
-		add(resetButton);
-
-		GridBagConstraints c3 = new GridBagConstraints();
-		c3.gridy = 3;
-		c3.weightx = 1;
-		c0.weighty = 0.25;
-		c3.fill = GridBagConstraints.BOTH;
-		add(resetButton, c3);
+		GridBagConstraints c5 = new GridBagConstraints();
+		c5.gridy = 5;
+		c5.weightx = 1;
+		c5.fill = GridBagConstraints.BOTH;
+		add(resetButton, c5);
 	}
 
-	public void setHitpoints(int hitpoints)
+	void update(PropertyChangeEvent event)
 	{
-		restorePanel.setHitpoints(hitpoints);
+		int newValue = (Integer) event.getNewValue();
+		switch (event.getPropertyName())
+		{
+			case "hitpoints":
+				restorePanel.setHitpoints(newValue);
+				savingsPanel.setSharks(newValue);
+				break;
+			case "prayer":
+				restorePanel.setPrayer(newValue);
+				savingsPanel.setPotions(newValue, stats.getPrayerLevel());
+				break;
+			case "prayerLevel":
+				savingsPanel.setPotions(stats.getPrayer(), newValue);
+		}
 	}
 
-	public void setPrayer(int prayer)
+	private void resetClicked()
 	{
-		restorePanel.setPrayer(prayer);
+		if (stats == null)
+		{
+			return;
+		}
+		stats.setHitpoints(0);
+		stats.setPrayer(0);
 	}
 }

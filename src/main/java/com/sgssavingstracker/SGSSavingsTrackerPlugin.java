@@ -1,23 +1,21 @@
 package com.sgssavingstracker;
 
 import javax.inject.Inject;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EquipmentInventorySlot;
-import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.VarPlayer;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ClientShutdown;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
@@ -36,59 +34,98 @@ public class SGSSavingsTrackerPlugin extends Plugin
 {
 	// SGS: 11806
 	public static final int SGS_ITEM_ID = 11806;
+
 	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
 	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
 	public static final String CONFIG_PRAYER_KEY = "prayerSaved";
-	private RestoreOccurrence currentRestoreOccurrence;
-	private SGSSavingsTrackerPanel panel;
-	@Getter
-	private int hitpointsSaved;
-	@Getter
-	private int prayerSaved;
+
 	private int specPercent;
+	private Stats stats;
+	private RestoreOccurrence currentRestoreOccurrence;
+
+	private NavigationButton navigationButton;
+
 	@Inject
 	private Client client;
 	@Inject
 	private ClientToolbar clientToolbar;
 	@Inject
+	private ClientThread clientThread;
+	@Inject
 	private ConfigManager configManager;
 	@Inject
 	private ItemManager itemManager;
 
+	// THINGS TO MANAGE:
+	// SPEC, PRAYER LEVEL, STATS, CURRENTRESTOREOCCURENCE
+
 	@Override
 	protected void startUp()
 	{
-		panel = new SGSSavingsTrackerPanel();
+		currentRestoreOccurrence = null;
+		stats = new Stats();
 
-		NavigationButton navButton = NavigationButton.builder()
+		SGSSavingsTrackerPanel panel = new SGSSavingsTrackerPanel(stats, itemManager);
+		stats.addPropertyChangeListener(event ->
+			clientThread.invokeLater(() -> {
+				panel.update(event);
+				saveData();
+			}));
+
+		loadData();
+		setPrayerLevel(client.getRealSkillLevel(Skill.PRAYER));
+
+		navigationButton = NavigationButton.builder()
 			.panel(panel)
 			.tooltip("SGS Savings Tracker")
 			.icon(ImageUtil.loadImageResource(getClass(), "/sgs_icon.png"))
 			.priority(5)
 			.build();
-		clientToolbar.addNavigation(navButton);
-
-		// TODO: Make sure spec loading is robust
-		specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
+		clientToolbar.addNavigation(navigationButton);
 	}
 
 	@Override
 	protected void shutDown()
 	{
-		saveData();
+		clientToolbar.removeNavigation(navigationButton);
 	}
 
 	@Subscribe
-	public void onClientShutdown(ClientShutdown event)
+	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
 	{
-		saveData();
+		loadData();
+	}
+
+	private void loadData()
+	{
+		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
+		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
+		int hitpointsValue = (configHitpoints != null) ? configHitpoints : 0;
+		int prayerValue = (configPrayer != null) ? configPrayer : 0;
+		stats.setHitpoints(hitpointsValue);
+		stats.setPrayer(prayerValue);
+
+		specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
 	}
 
 	private void saveData()
 	{
-		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, hitpointsSaved);
-		configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, prayerSaved);
-		System.out.println("saved");
+		if (stats.getHitpoints() > 0)
+		{
+			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, stats.getHitpoints());
+		}
+		else
+		{
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY);
+		}
+		if (stats.getPrayer() > 0)
+		{
+			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, stats.getPrayer());
+		}
+		else
+		{
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY);
+		}
 	}
 
 	@Subscribe
@@ -115,6 +152,20 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 	@Subscribe
 	public void onStatChanged(StatChanged event)
+	{
+		if (event.getSkill() == Skill.PRAYER)
+		{
+			setPrayerLevel(event.getLevel());
+		}
+		setRestore(event);
+	}
+
+	private void setPrayerLevel(int level)
+	{
+		stats.setPrayerLevel(level);
+	}
+
+	private void setRestore(StatChanged event)
 	{
 		if (currentRestoreOccurrence == null || client.getTickCount() != currentRestoreOccurrence.getSpecTick())
 		{
@@ -149,30 +200,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		currentRestoreOccurrence.computeExpected(event.getHitsplat().getAmount());
 		currentRestoreOccurrence.computeSaved();
 
-		hitpointsSaved += currentRestoreOccurrence.getSavedHitpoints();
-		prayerSaved += currentRestoreOccurrence.getSavedPrayer();
-
-		panel.setHitpoints(hitpointsSaved);
-		panel.setPrayer(prayerSaved);
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
-		{
-		}
-	}
-
-	@Subscribe
-	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
-	{
-		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
-		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
-		hitpointsSaved = (configHitpoints != null) ? configHitpoints : 0;
-		prayerSaved = (configPrayer != null) ? configPrayer : 0;
-		panel.setHitpoints(hitpointsSaved);
-		panel.setPrayer(prayerSaved);
+		stats.incrementHitpoints(currentRestoreOccurrence.getSavedHitpoints());
+		stats.incrementPrayer(currentRestoreOccurrence.getSavedPrayer());
 	}
 
 	private boolean playerIsWieldingSGS()
@@ -190,5 +219,33 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		}
 
 		return weaponSlotItem.getId() == SGS_ITEM_ID;
+	}
+
+	@Subscribe
+	public void onCommandExecuted(CommandExecuted commandExecuted)
+	{
+		String[] args = commandExecuted.getArguments();
+		switch (commandExecuted.getCommand())
+		{
+			case "sgsprint":
+				System.out.println("stats: " + stats.toString());
+				System.out.print("currentRestoreOccurrence: ");
+				if (currentRestoreOccurrence != null)
+				{
+					System.out.println(currentRestoreOccurrence);
+				}
+				else
+				{
+					System.out.println("null");
+				}
+				System.out.println("Spec percent: " + specPercent);
+				break;
+			case "sgshp":
+				stats.incrementHitpoints(Integer.parseInt(args[0]));
+				break;
+			case "sgspp":
+				stats.incrementPrayer(Integer.parseInt(args[0]));
+				break;
+		}
 	}
 }
