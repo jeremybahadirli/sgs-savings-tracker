@@ -9,7 +9,6 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.Skill;
 import net.runelite.api.VarPlayer;
-import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
@@ -53,10 +52,6 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Inject
 	private ItemManager itemManager;
 
-	// THINGS TO MANAGE:
-	// STATS (HP, PP, Prayer Level, Spec Percent)
-	// CURRENTRESTOREOCCURENCE (Spec tick, prev, exp, act, saved)
-
 	@Override
 	protected void startUp()
 	{
@@ -68,10 +63,9 @@ public class SGSSavingsTrackerPlugin extends Plugin
 				saveToConfig();
 			}));
 
-		currentRestoreOccurrence = null;
-
-		getPlayerData();
 		loadFromConfig();
+		stats.setSpecPercent(client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT));
+		stats.setPrayerLevel(client.getRealSkillLevel(Skill.PRAYER));
 
 		navigationButton = NavigationButton.builder()
 			.panel(panel)
@@ -91,14 +85,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Subscribe
 	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
 	{
-		getPlayerData();
 		loadFromConfig();
-	}
-
-	private void getPlayerData()
-	{
-		stats.setSpecPercent(client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT));
-		stats.setPrayerLevel(client.getRealSkillLevel(Skill.PRAYER));
 	}
 
 	private void loadFromConfig()
@@ -213,32 +200,5 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		}
 
 		return weaponSlotItem.getId() == SGS_ITEM_ID;
-	}
-
-	@Subscribe
-	public void onCommandExecuted(CommandExecuted commandExecuted)
-	{
-		String[] args = commandExecuted.getArguments();
-		switch (commandExecuted.getCommand())
-		{
-			case "sgsprint":
-				System.out.println("stats: " + stats.toString());
-				System.out.print("currentRestoreOccurrence: ");
-				if (currentRestoreOccurrence != null)
-				{
-					System.out.println(currentRestoreOccurrence);
-				}
-				else
-				{
-					System.out.println("null");
-				}
-				break;
-			case "sgshp":
-				stats.incrementHitpoints(Integer.parseInt(args[0]));
-				break;
-			case "sgspp":
-				stats.incrementPrayer(Integer.parseInt(args[0]));
-				break;
-		}
 	}
 }
