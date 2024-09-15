@@ -3,12 +3,17 @@ package com.sgssavingstracker;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 public class Stats
 {
 	private final PropertyChangeSupport support = new PropertyChangeSupport(this);
+
+	@Setter
+	@Getter
+	private int specPercent = 0;
 	@Getter
 	private int hitpoints = 0;
 	@Getter

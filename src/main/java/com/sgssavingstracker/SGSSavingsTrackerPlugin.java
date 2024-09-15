@@ -34,15 +34,12 @@ public class SGSSavingsTrackerPlugin extends Plugin
 {
 	// SGS: 11806
 	public static final int SGS_ITEM_ID = 11806;
-
 	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
 	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
 	public static final String CONFIG_PRAYER_KEY = "prayerSaved";
 
-	private int specPercent;
 	private Stats stats;
 	private RestoreOccurrence currentRestoreOccurrence;
-
 	private NavigationButton navigationButton;
 
 	@Inject
@@ -57,23 +54,24 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	private ItemManager itemManager;
 
 	// THINGS TO MANAGE:
-	// SPEC, PRAYER LEVEL, STATS, CURRENTRESTOREOCCURENCE
+	// STATS (HP, PP, Prayer Level, Spec Percent)
+	// CURRENTRESTOREOCCURENCE (Spec tick, prev, exp, act, saved)
 
 	@Override
 	protected void startUp()
 	{
-		currentRestoreOccurrence = null;
 		stats = new Stats();
-
 		SGSSavingsTrackerPanel panel = new SGSSavingsTrackerPanel(stats, itemManager);
 		stats.addPropertyChangeListener(event ->
 			clientThread.invokeLater(() -> {
 				panel.update(event);
-				saveData();
+				saveToConfig();
 			}));
 
-		loadData();
-		setPrayerLevel(client.getRealSkillLevel(Skill.PRAYER));
+		currentRestoreOccurrence = null;
+
+		getPlayerData();
+		loadFromConfig();
 
 		navigationButton = NavigationButton.builder()
 			.panel(panel)
@@ -93,10 +91,17 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	@Subscribe
 	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
 	{
-		loadData();
+		getPlayerData();
+		loadFromConfig();
 	}
 
-	private void loadData()
+	private void getPlayerData()
+	{
+		stats.setSpecPercent(client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT));
+		stats.setPrayerLevel(client.getRealSkillLevel(Skill.PRAYER));
+	}
+
+	private void loadFromConfig()
 	{
 		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
 		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
@@ -104,11 +109,9 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		int prayerValue = (configPrayer != null) ? configPrayer : 0;
 		stats.setHitpoints(hitpointsValue);
 		stats.setPrayer(prayerValue);
-
-		specPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT);
 	}
 
-	private void saveData()
+	private void saveToConfig()
 	{
 		if (stats.getHitpoints() > 0)
 		{
@@ -136,50 +139,40 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			return;
 		}
 
-		int previousSpecPercent = this.specPercent;
-		this.specPercent = event.getValue();
+		int previousSpecPercent = stats.getSpecPercent();
+		stats.setSpecPercent(event.getValue());
 
-		if (this.specPercent >= previousSpecPercent || !playerIsWieldingSGS())
+		if (playerIsWieldingSGS() && stats.getSpecPercent() < previousSpecPercent)
 		{
-			return;
+			currentRestoreOccurrence = new RestoreOccurrence(
+				client.getTickCount(),
+				client.getBoostedSkillLevel(Skill.HITPOINTS),
+				client.getBoostedSkillLevel(Skill.PRAYER));
 		}
-
-		currentRestoreOccurrence = new RestoreOccurrence(
-			client.getTickCount(),
-			client.getBoostedSkillLevel(Skill.HITPOINTS),
-			client.getBoostedSkillLevel(Skill.PRAYER));
 	}
 
 	@Subscribe
 	public void onStatChanged(StatChanged event)
 	{
-		if (event.getSkill() == Skill.PRAYER)
+		if (event.getSkill() == Skill.PRAYER && event.getLevel() != stats.getPrayerLevel())
 		{
-			setPrayerLevel(event.getLevel());
+			stats.setPrayerLevel(event.getLevel());
 		}
-		setRestore(event);
-	}
 
-	private void setPrayerLevel(int level)
-	{
-		stats.setPrayerLevel(level);
-	}
-
-	private void setRestore(StatChanged event)
-	{
+		// Player used SGS spec
 		if (currentRestoreOccurrence == null || client.getTickCount() != currentRestoreOccurrence.getSpecTick())
 		{
 			return;
 		}
 
-		int newLevel = event.getBoostedLevel();
+		// Record actually gained HP/PP
 		switch (event.getSkill())
 		{
 			case HITPOINTS:
-				currentRestoreOccurrence.setActualHitpoints(newLevel - currentRestoreOccurrence.getPreviousHitpoints());
+				currentRestoreOccurrence.setActualHitpoints(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousHitpoints());
 				break;
 			case PRAYER:
-				currentRestoreOccurrence.setActualPrayer(newLevel - currentRestoreOccurrence.getPreviousPrayer());
+				currentRestoreOccurrence.setActualPrayer(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousPrayer());
 				break;
 		}
 	}
@@ -192,6 +185,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			return;
 		}
 
+		// Player used SGS spec
 		if (currentRestoreOccurrence == null || client.getTickCount() != currentRestoreOccurrence.getSpecTick() + 1)
 		{
 			return;
@@ -238,7 +232,6 @@ public class SGSSavingsTrackerPlugin extends Plugin
 				{
 					System.out.println("null");
 				}
-				System.out.println("Spec percent: " + specPercent);
 				break;
 			case "sgshp":
 				stats.incrementHitpoints(Integer.parseInt(args[0]));

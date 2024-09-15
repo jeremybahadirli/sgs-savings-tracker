@@ -30,8 +30,8 @@ public class SavingsPanel extends JPanel
 		this.itemManager = itemManager;
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBorder(new EmptyBorder(8, 0, 8, 0));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		setBorder(new EmptyBorder(8, 0, 8, 0));
 
 		JLabel label = new JLabel("You've saved the equivalent of:");
 		label.setAlignmentX(CENTER_ALIGNMENT);
@@ -72,7 +72,6 @@ public class SavingsPanel extends JPanel
 
 		AsyncBufferedImage sharkImage = itemManager.getImage(SHARK_ITEM_ID, quantity, true);
 		sharkImage.addTo(sharkLabel);
-
 		sharkValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(value) + "</font> gp</html>");
 	}
 
@@ -94,7 +93,6 @@ public class SavingsPanel extends JPanel
 
 		AsyncBufferedImage prayerImage = itemManager.getImage(POTION_ITEM_ID, quantity, true);
 		prayerImage.addTo(potionLabel);
-
 		potionValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(value) + "</font> gp</html>");
 	}
 }

@@ -14,12 +14,12 @@ public class RestoreOccurrence
 	@Getter
 	private final int previousPrayer;
 
+	private int expectedHitpoints;
+	private int expectedPrayer;
 	@Setter
 	private int actualHitpoints;
 	@Setter
 	private int actualPrayer;
-	private int expectedHitpoints;
-	private int expectedPrayer;
 	@Getter
 	private int savedHitpoints;
 	@Getter

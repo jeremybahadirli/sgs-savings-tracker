@@ -52,17 +52,17 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		add(restorePanel, c1);
 
 		savingsPanel = new SavingsPanel(itemManager);
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridy = 3;
-		c.weightx = 1;
-		c.fill = GridBagConstraints.BOTH;
-		add(savingsPanel, c);
+		GridBagConstraints c2 = new GridBagConstraints();
+		c2.gridy = 3;
+		c2.weightx = 1;
+		c2.fill = GridBagConstraints.BOTH;
+		add(savingsPanel, c2);
 
 		JPanel spacer = new JPanel();
-		GridBagConstraints c4 = new GridBagConstraints();
-		c4.gridy = 4;
-		c4.weighty = 1;
-		add(spacer, c4);
+		GridBagConstraints c3 = new GridBagConstraints();
+		c3.gridy = 4;
+		c3.weighty = 1;
+		add(spacer, c3);
 
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(event -> {
@@ -75,11 +75,11 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 				resetClicked();
 			}
 		});
-		GridBagConstraints c5 = new GridBagConstraints();
-		c5.gridy = 5;
-		c5.weightx = 1;
-		c5.fill = GridBagConstraints.BOTH;
-		add(resetButton, c5);
+		GridBagConstraints c4 = new GridBagConstraints();
+		c4.gridy = 5;
+		c4.weightx = 1;
+		c4.fill = GridBagConstraints.BOTH;
+		add(resetButton, c4);
 	}
 
 	void update(PropertyChangeEvent event)
