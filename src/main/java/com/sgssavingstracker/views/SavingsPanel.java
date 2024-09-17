@@ -68,6 +68,8 @@ public class SavingsPanel extends JPanel
 	public void setSharks(int hitpoints)
 	{
 		int quantity = Math.round(hitpoints / 20f);
+
+		// Initial panel construction is not on client thread, so we can't access getItemPrice
 		int value = (quantity > 0) ? itemManager.getItemPrice(SHARK_ITEM_ID) * quantity : 0;
 
 		AsyncBufferedImage sharkImage = itemManager.getImage(SHARK_ITEM_ID, quantity, true);
@@ -78,6 +80,9 @@ public class SavingsPanel extends JPanel
 	public void setPotions(int prayer, int prayerLevel)
 	{
 		int quantity;
+
+		// On login, restore values are loaded from config before prayer level is determined
+		// Prevent incorrect quantity from briefly displaying prior to determining prayer level
 		if (prayerLevel > 0)
 		{
 			int restorePerDose = (prayerLevel / 4) + 7;
@@ -89,6 +94,7 @@ public class SavingsPanel extends JPanel
 			quantity = 0;
 		}
 
+		// Initial panel construction is not on client thread, so we can't access getItemPrice
 		int value = (quantity > 0) ? itemManager.getItemPrice(POTION_ITEM_ID) * quantity : 0;
 
 		AsyncBufferedImage prayerImage = itemManager.getImage(POTION_ITEM_ID, quantity, true);
