@@ -4,4 +4,4 @@ Track Hitpoints and Prayer saved by using the Saradomin Godsword Special Attack.
 
 View your Hitpoints and Prayer savings in terms of Sharks and Prayer Potions.
 
-![2024-09-16_10-24-07](https://github.com/user-attachments/assets/c2d1349b-aa60-49d9-b6ce-26f6a7f5bb26)
+![Screenshot 2024-09-26 at 17 11 33](https://github.com/user-attachments/assets/90132ccd-fb87-47d8-8d06-fe1b804b38a1)
