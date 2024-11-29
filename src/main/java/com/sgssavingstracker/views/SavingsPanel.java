@@ -1,5 +1,7 @@
 package com.sgssavingstracker.views;
 
+import com.sgssavingstracker.HPItem;
+import com.sgssavingstracker.PPItem;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import javax.swing.Box;
@@ -16,13 +18,10 @@ import net.runelite.client.util.QuantityFormatter;
 
 public class SavingsPanel extends JPanel
 {
-	private static final int SHARK_ITEM_ID = 385;
-	private static final int POTION_ITEM_ID = 2434;
-
-	JLabel sharkLabel;
-	JLabel potionLabel;
-	JLabel sharkValue;
-	JLabel potionValue;
+	JLabel hpLabel;
+	JLabel ppLabel;
+	JLabel hpValue;
+	JLabel ppValue;
 	ItemManager itemManager;
 
 	public SavingsPanel(ItemManager itemManager)
@@ -43,62 +42,95 @@ public class SavingsPanel extends JPanel
 		gridPanel.setLayout(new GridLayout(2, 2, 16, 8));
 		gridPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		sharkLabel = new JLabel();
-		sharkLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		gridPanel.add(sharkLabel);
+		hpLabel = new JLabel();
+		hpLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+		gridPanel.add(hpLabel);
 
-		sharkValue = new JLabel();
-		sharkValue.setFont(FontManager.getRunescapeSmallFont());
-		gridPanel.add(sharkValue);
+		hpValue = new JLabel();
+		hpValue.setFont(FontManager.getRunescapeSmallFont());
+		gridPanel.add(hpValue);
 
-		potionLabel = new JLabel();
-		potionLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		gridPanel.add(potionLabel);
+		ppLabel = new JLabel();
+		ppLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+		gridPanel.add(ppLabel);
 
-		potionValue = new JLabel();
-		potionValue.setFont(FontManager.getRunescapeSmallFont());
-		gridPanel.add(potionValue);
+		ppValue = new JLabel();
+		ppValue.setFont(FontManager.getRunescapeSmallFont());
+		gridPanel.add(ppValue);
 
 		add(gridPanel);
-
-		setSharks(0);
-		setPotions(0, 0);
 	}
 
-	public void setSharks(int hitpoints)
+	public void setHitpoints(int hitpoints, HPItem item)
 	{
-		int quantity = Math.round(hitpoints / 20f);
+		String itemName;
+		int hpPerItem;
+		int itemId;
+		switch (item)
+		{
+			case KARAMBWAN:
+				itemName = "Karambwan";
+				hpPerItem = 18;
+				itemId = 3144;
+				break;
+			case SHARK:
+				itemName = "Shark";
+				hpPerItem = 20;
+				itemId = 385;
+				break;
+			default: // MANTA_RAY
+				itemName = "Manta Ray";
+				hpPerItem = 22;
+				itemId = 391;
+				break;
+		}
 
-		// Initial panel construction is not on client thread, so we can't access getItemPrice
-		int value = (quantity > 0) ? itemManager.getItemPrice(SHARK_ITEM_ID) * quantity : 0;
+		int itemsRequired = Math.round((float) hitpoints / hpPerItem);
 
-		AsyncBufferedImage sharkImage = itemManager.getImage(SHARK_ITEM_ID, quantity, true);
-		sharkImage.addTo(sharkLabel);
-		sharkValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(value) + "</font> gp</html>");
+		int pricePerItem = itemManager.getItemPrice(itemId);
+		int totalPrice = pricePerItem * itemsRequired;
+
+		AsyncBufferedImage itemImage = itemManager.getImage(itemId, itemsRequired, true);
+		itemImage.addTo(hpLabel);
+		hpLabel.setToolTipText(itemName + ": " + QuantityFormatter.quantityToStackSize(pricePerItem) + " gp each");
+		hpValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(totalPrice) + "</font> gp</html>");
 	}
 
-	public void setPotions(int prayer, int prayerLevel)
+	public void setPrayer(int prayer, int prayerLevel, PPItem item)
 	{
-		int quantity;
+		String itemName;
+		int restorePerDose;
+		int itemId;
+		switch (item)
+		{
+			case PRAYER_POTION:
+				itemName = "Prayer potion(4)";
+				restorePerDose = (prayerLevel / 4) + 7;
+				itemId = 2434;
+				break;
+			case SUPER_RESTORE:
+				itemName = "Super restore(4)";
+				restorePerDose = (prayerLevel / 4) + 8;
+				itemId = 3024;
+				break;
+			default: // SANFEW_SERUM:
+				itemName = "Sanfew serum(4)";
+				restorePerDose = (prayerLevel * 3 / 10) + 4;
+				itemId = 10925;
+				break;
+		}
 
 		// On login, restore values are loaded from config before prayer level is determined
-		// Prevent incorrect quantity from briefly displaying prior to determining prayer level
-		if (prayerLevel > 0)
-		{
-			int restorePerDose = (prayerLevel / 4) + 7;
-			float dosesRequired = (float) prayer / restorePerDose;
-			quantity = Math.round(dosesRequired / 4);
-		}
-		else
-		{
-			quantity = 0;
-		}
+		// Prevent incorrect potionsRequired from briefly displaying prior to determining prayer level
+		float dosesRequired = (float) prayer / restorePerDose;
+		int potionsRequired = (prayerLevel > 0) ? Math.round(dosesRequired / 4) : 0;
 
-		// Initial panel construction is not on client thread, so we can't access getItemPrice
-		int value = (quantity > 0) ? itemManager.getItemPrice(POTION_ITEM_ID) * quantity : 0;
+		int pricePerPotion = itemManager.getItemPrice(itemId);
+		int totalPrice = pricePerPotion * potionsRequired;
 
-		AsyncBufferedImage prayerImage = itemManager.getImage(POTION_ITEM_ID, quantity, true);
-		prayerImage.addTo(potionLabel);
-		potionValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(value) + "</font> gp</html>");
+		AsyncBufferedImage prayerImage = itemManager.getImage(itemId, potionsRequired, true);
+		prayerImage.addTo(ppLabel);
+		ppLabel.setToolTipText(itemName + ": " + QuantityFormatter.quantityToStackSize(pricePerPotion) + " gp each");
+		ppValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(totalPrice) + "</font> gp</html>");
 	}
 }

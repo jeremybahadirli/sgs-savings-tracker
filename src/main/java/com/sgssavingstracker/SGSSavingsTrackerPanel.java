@@ -19,10 +19,12 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 	Stats stats;
 	RestorePanel restorePanel;
 	SavingsPanel savingsPanel;
+	SGSSavingsTrackerConfig config;
 
-	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager)
+	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
 		this.stats = stats;
+		this.config = config;
 		initView(itemManager);
 	}
 
@@ -89,14 +91,14 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		{
 			case "hitpoints":
 				restorePanel.setHitpoints(newValue);
-				savingsPanel.setSharks(newValue);
+				savingsPanel.setHitpoints(newValue, config.hpItem());
 				break;
 			case "prayer":
 				restorePanel.setPrayer(newValue);
-				savingsPanel.setPotions(newValue, stats.getPrayerLevel());
+				savingsPanel.setPrayer(newValue, stats.getPrayerLevel(), config.ppItem());
 				break;
 			case "prayerLevel":
-				savingsPanel.setPotions(stats.getPrayer(), newValue);
+				savingsPanel.setPrayer(stats.getPrayer(), newValue, config.ppItem());
 		}
 	}
 

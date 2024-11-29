@@ -1,5 +1,6 @@
 package com.sgssavingstracker;
 
+import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -15,6 +16,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
@@ -40,6 +42,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	private Stats stats;
 	private RestoreOccurrence currentRestoreOccurrence;
 	private NavigationButton navigationButton;
+	private SGSSavingsTrackerPanel panel;
 
 	@Inject
 	private Client client;
@@ -47,6 +50,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	private ClientToolbar clientToolbar;
 	@Inject
 	private ClientThread clientThread;
+	@Inject
+	private SGSSavingsTrackerConfig config;
 	@Inject
 	private ConfigManager configManager;
 	@Inject
@@ -56,7 +61,12 @@ public class SGSSavingsTrackerPlugin extends Plugin
 	protected void startUp()
 	{
 		stats = new Stats();
-		SGSSavingsTrackerPanel panel = new SGSSavingsTrackerPanel(stats, itemManager);
+		panel = new SGSSavingsTrackerPanel(stats, itemManager, config);
+		clientThread.invokeLater(() -> {
+			panel.savingsPanel.setHitpoints(0, config.hpItem());
+			panel.savingsPanel.setPrayer(0, 0, config.ppItem());
+		});
+
 		stats.addPropertyChangeListener(event ->
 			clientThread.invokeLater(() -> {
 				panel.update(event);
@@ -200,5 +210,23 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		}
 
 		return weaponSlotItem.getId() == SGS_ITEM_ID;
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getGroup().equals(CONFIG_GROUP_NAME))
+		{
+			clientThread.invokeLater(() -> {
+				panel.savingsPanel.setHitpoints(stats.getHitpoints(), config.hpItem());
+				panel.savingsPanel.setPrayer(stats.getPrayer(), stats.getPrayerLevel(), config.ppItem());
+			});
+		}
+	}
+
+	@Provides
+	SGSSavingsTrackerConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SGSSavingsTrackerConfig.class);
 	}
 }
