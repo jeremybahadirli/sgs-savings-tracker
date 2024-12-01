@@ -12,22 +12,36 @@ public class Stats
 
 	@Setter
 	private int specPercent = 0;
-	private int hitpoints = 0;
-	private int prayer = 0;
+	private int hpSaved = 0;
+	private int ppSaved = 0;
 	private int prayerLevel = 0;
 
-	public void setHitpoints(int value)
+	public void setHpSaved(int value)
 	{
-		int previous = this.hitpoints;
-		this.hitpoints = value;
-		support.firePropertyChange("hitpoints", previous, this.hitpoints);
+		int previous = this.hpSaved;
+		this.hpSaved = value;
+		support.firePropertyChange("hp", previous, this.hpSaved);
 	}
 
-	public void setPrayer(int value)
+	public void incrementHpSaved(int value)
 	{
-		int previous = this.prayer;
-		this.prayer = value;
-		support.firePropertyChange("prayer", previous, this.prayer);
+		int previous = this.hpSaved;
+		this.hpSaved += value;
+		support.firePropertyChange("hp", previous, this.hpSaved);
+	}
+
+	public void setPpSaved(int value)
+	{
+		int previous = this.ppSaved;
+		this.ppSaved = value;
+		support.firePropertyChange("pp", previous, this.ppSaved);
+	}
+
+	public void incrementPpSaved(int value)
+	{
+		int previous = this.ppSaved;
+		this.ppSaved += value;
+		support.firePropertyChange("pp", previous, this.ppSaved);
 	}
 
 	public void setPrayerLevel(int value)
@@ -35,20 +49,6 @@ public class Stats
 		int previous = this.prayerLevel;
 		this.prayerLevel = value;
 		support.firePropertyChange("prayerLevel", previous, this.prayerLevel);
-	}
-
-	public void incrementHitpoints(int value)
-	{
-		int previous = this.hitpoints;
-		this.hitpoints += value;
-		support.firePropertyChange("hitpoints", previous, this.hitpoints);
-	}
-
-	public void incrementPrayer(int value)
-	{
-		int previous = this.prayer;
-		this.prayer += value;
-		support.firePropertyChange("prayer", previous, this.prayer);
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener)

@@ -11,8 +11,8 @@ import net.runelite.client.util.ImageUtil;
 
 public class RestorePanel extends JPanel
 {
-	StatPanel hitpointsPanel;
-	StatPanel prayerPanel;
+	StatPanel hpPanel;
+	StatPanel ppPanel;
 
 	public RestorePanel()
 	{
@@ -26,13 +26,13 @@ public class RestorePanel extends JPanel
 		c0.weighty = 1;
 		add(spacerTop, c0);
 
-		BufferedImage hitpointsIcon = ImageUtil.loadImageResource(getClass(), "/hitpoints_icon.png");
-		hitpointsPanel = new StatPanel(hitpointsIcon);
+		BufferedImage hpIcon = ImageUtil.loadImageResource(getClass(), "/hitpoints_icon.png");
+		hpPanel = new StatPanel(hpIcon);
 		GridBagConstraints c1 = new GridBagConstraints();
 		c1.gridx = 0;
 		c1.gridy = 1;
 		c1.weightx = 0.5;
-		add(hitpointsPanel, c1);
+		add(hpPanel, c1);
 
 		JPanel spacerBottom = new JPanel();
 		spacerBottom.setPreferredSize(new Dimension(0, 32));
@@ -50,22 +50,22 @@ public class RestorePanel extends JPanel
 		c3.fill = GridBagConstraints.BOTH;
 		add(separator, c3);
 
-		BufferedImage prayerIcon = ImageUtil.loadImageResource(getClass(), "/prayer_icon.png");
-		prayerPanel = new StatPanel(prayerIcon);
+		BufferedImage ppIcon = ImageUtil.loadImageResource(getClass(), "/prayer_icon.png");
+		ppPanel = new StatPanel(ppIcon);
 		GridBagConstraints c4 = new GridBagConstraints();
 		c4.gridx = 2;
 		c4.gridy = 1;
 		c4.weightx = 0.5;
-		add(prayerPanel, c4);
+		add(ppPanel, c4);
 	}
 
-	public void setHitpoints(int hitpoints)
+	public void setHpSaved(int hpSaved)
 	{
-		hitpointsPanel.setValue(hitpoints);
+		hpPanel.setValue(hpSaved);
 	}
 
-	public void setPrayer(int prayer)
+	public void setPpSaved(int ppSaved)
 	{
-		prayerPanel.setValue(prayer);
+		ppPanel.setValue(ppSaved);
 	}
 }

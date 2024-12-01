@@ -87,13 +87,13 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		int newValue = (Integer) event.getNewValue();
 		switch (event.getPropertyName())
 		{
-			case "hitpoints":
-				restorePanel.setHitpoints(newValue);
-				savingsPanel.setHPSaved(newValue);
+			case "hp":
+				restorePanel.setHpSaved(newValue);
+				savingsPanel.setHpSaved(newValue);
 				break;
-			case "prayer":
-				restorePanel.setPrayer(newValue);
-				savingsPanel.setPPSaved(newValue);
+			case "pp":
+				restorePanel.setPpSaved(newValue);
+				savingsPanel.setPpSaved(newValue);
 				break;
 			case "prayerLevel":
 				savingsPanel.setPrayerLevel(newValue);
@@ -106,7 +106,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		{
 			return;
 		}
-		stats.setHitpoints(0);
-		stats.setPrayer(0);
+		stats.setHpSaved(0);
+		stats.setPpSaved(0);
 	}
 }

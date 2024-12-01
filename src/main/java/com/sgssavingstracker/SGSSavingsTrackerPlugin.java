@@ -35,8 +35,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 {
 	public static final int SGS_ITEM_ID = 11806;
 	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
-	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
-	public static final String CONFIG_PRAYER_KEY = "prayerSaved";
+	public static final String CONFIG_HP_KEY = "hitpointsSaved";
+	public static final String CONFIG_PP_KEY = "prayerSaved";
 
 	private Stats stats;
 	private RestoreOccurrence currentRestoreOccurrence;
@@ -62,8 +62,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		stats = new Stats();
 		panel = new SGSSavingsTrackerPanel(stats, itemManager, config);
 		clientThread.invokeLater(() -> {
-			panel.savingsPanel.setHPItem(config.hpItem());
-			panel.savingsPanel.setPPItem(config.ppItem());
+			panel.savingsPanel.setHpItem(config.hpItem());
+			panel.savingsPanel.setPpItem(config.ppItem());
 		});
 
 		stats.addPropertyChangeListener(event ->
@@ -99,31 +99,31 @@ public class SGSSavingsTrackerPlugin extends Plugin
 
 	private void loadFromConfig()
 	{
-		Integer configHitpoints = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, Integer.class);
-		Integer configPrayer = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, Integer.class);
-		int hitpointsValue = (configHitpoints != null) ? configHitpoints : 0;
-		int prayerValue = (configPrayer != null) ? configPrayer : 0;
-		stats.setHitpoints(hitpointsValue);
-		stats.setPrayer(prayerValue);
+		Integer configHp = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HP_KEY, Integer.class);
+		Integer configPp = configManager.getRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PP_KEY, Integer.class);
+		int formattedConfigHp = (configHp != null) ? configHp : 0;
+		int formattedConfigPp = (configPp != null) ? configPp : 0;
+		stats.setHpSaved(formattedConfigHp);
+		stats.setPpSaved(formattedConfigPp);
 	}
 
 	private void saveToConfig()
 	{
-		if (stats.getHitpoints() > 0)
+		if (stats.getHpSaved() > 0)
 		{
-			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY, stats.getHitpoints());
+			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HP_KEY, stats.getHpSaved());
 		}
 		else
 		{
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HITPOINTS_KEY);
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_HP_KEY);
 		}
-		if (stats.getPrayer() > 0)
+		if (stats.getPpSaved() > 0)
 		{
-			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY, stats.getPrayer());
+			configManager.setRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PP_KEY, stats.getPpSaved());
 		}
 		else
 		{
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PRAYER_KEY);
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP_NAME, CONFIG_PP_KEY);
 		}
 	}
 
@@ -165,10 +165,10 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		switch (event.getSkill())
 		{
 			case HITPOINTS:
-				currentRestoreOccurrence.setActualHitpoints(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousHitpoints());
+				currentRestoreOccurrence.setActualHp(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousHp());
 				break;
 			case PRAYER:
-				currentRestoreOccurrence.setActualPrayer(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousPrayer());
+				currentRestoreOccurrence.setActualPp(event.getBoostedLevel() - currentRestoreOccurrence.getPreviousPp());
 				break;
 		}
 	}
@@ -190,8 +190,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		currentRestoreOccurrence.computeExpected(event.getHitsplat().getAmount());
 		currentRestoreOccurrence.computeSaved();
 
-		stats.incrementHitpoints(currentRestoreOccurrence.getSavedHitpoints());
-		stats.incrementPrayer(currentRestoreOccurrence.getSavedPrayer());
+		stats.incrementHpSaved(currentRestoreOccurrence.getSavedHp());
+		stats.incrementPpSaved(currentRestoreOccurrence.getSavedPp());
 	}
 
 	private boolean playerIsWieldingSgs()
@@ -217,8 +217,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		if (event.getGroup().equals(CONFIG_GROUP_NAME))
 		{
 			clientThread.invokeLater(() -> {
-				panel.savingsPanel.setHPItem(config.hpItem());
-				panel.savingsPanel.setPPItem(config.ppItem());
+				panel.savingsPanel.setHpItem(config.hpItem());
+				panel.savingsPanel.setPpItem(config.ppItem());
 			});
 		}
 	}
