@@ -64,24 +64,25 @@ public class SavingsPanel extends JPanel
 	public void setHitpoints(int hitpoints, HPItem item)
 	{
 		String itemName;
-		int hpPerItem;
 		int itemId;
+		int hpPerItem;
 		switch (item)
 		{
 			case KARAMBWAN:
 				itemName = "Karambwan";
-				hpPerItem = 18;
 				itemId = 3144;
+				hpPerItem = 18;
 				break;
 			case SHARK:
 				itemName = "Shark";
-				hpPerItem = 20;
 				itemId = 385;
+				hpPerItem = 20;
 				break;
-			default: // MANTA_RAY
+			case MANTA_RAY:
+			default:
 				itemName = "Manta Ray";
-				hpPerItem = 22;
 				itemId = 391;
+				hpPerItem = 22;
 				break;
 		}
 
@@ -99,24 +100,25 @@ public class SavingsPanel extends JPanel
 	public void setPrayer(int prayer, int prayerLevel, PPItem item)
 	{
 		String itemName;
-		int restorePerDose;
 		int itemId;
+		int restorePerDose;
 		switch (item)
 		{
 			case PRAYER_POTION:
 				itemName = "Prayer potion(4)";
-				restorePerDose = (prayerLevel / 4) + 7;
 				itemId = 2434;
+				restorePerDose = (prayerLevel / 4) + 7;
 				break;
 			case SUPER_RESTORE:
 				itemName = "Super restore(4)";
-				restorePerDose = (prayerLevel / 4) + 8;
 				itemId = 3024;
+				restorePerDose = (prayerLevel / 4) + 8;
 				break;
-			default: // SANFEW_SERUM:
+			case SANFEW_SERUM:
+			default:
 				itemName = "Sanfew serum(4)";
-				restorePerDose = (prayerLevel * 3 / 10) + 4;
 				itemId = 10925;
+				restorePerDose = (prayerLevel * 3 / 10) + 4;
 				break;
 		}
 
