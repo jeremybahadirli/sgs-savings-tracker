@@ -19,16 +19,14 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 	Stats stats;
 	RestorePanel restorePanel;
 	SavingsPanel savingsPanel;
-	SGSSavingsTrackerConfig config;
 
 	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
 		this.stats = stats;
-		this.config = config;
-		initView(itemManager);
+		initView(itemManager, config);
 	}
 
-	private void initView(ItemManager itemManager)
+	private void initView(ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
 		getParent().setLayout(new BorderLayout());
 		getParent().add(this, BorderLayout.CENTER);
@@ -53,7 +51,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		c1.insets = new Insets(32, 0, 32, 0);
 		add(restorePanel, c1);
 
-		savingsPanel = new SavingsPanel(itemManager);
+		savingsPanel = new SavingsPanel(itemManager, config.hpItem(), config.ppItem());
 		GridBagConstraints c2 = new GridBagConstraints();
 		c2.gridy = 3;
 		c2.weightx = 1;
@@ -91,14 +89,14 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		{
 			case "hitpoints":
 				restorePanel.setHitpoints(newValue);
-				savingsPanel.setHitpoints(newValue, config.hpItem());
+				savingsPanel.setHPSaved(newValue);
 				break;
 			case "prayer":
 				restorePanel.setPrayer(newValue);
-				savingsPanel.setPrayer(newValue, stats.getPrayerLevel(), config.ppItem());
+				savingsPanel.setPPSaved(newValue);
 				break;
 			case "prayerLevel":
-				savingsPanel.setPrayer(stats.getPrayer(), newValue, config.ppItem());
+				savingsPanel.setPrayerLevel(newValue);
 		}
 	}
 

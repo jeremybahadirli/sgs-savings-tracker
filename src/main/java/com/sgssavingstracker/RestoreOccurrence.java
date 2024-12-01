@@ -2,9 +2,7 @@ package com.sgssavingstracker;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-@ToString
 public class RestoreOccurrence
 {
 	@Getter

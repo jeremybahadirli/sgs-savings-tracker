@@ -8,6 +8,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
@@ -18,16 +19,33 @@ import net.runelite.client.util.QuantityFormatter;
 
 public class SavingsPanel extends JPanel
 {
-	JLabel hpLabel;
-	JLabel ppLabel;
-	JLabel hpValue;
-	JLabel ppValue;
+	HPItem hpItem;
+	PPItem ppItem;
+	int hpSaved = 0;
+	int ppSaved = 0;
+	int prayerLevel = 0;
+
+	int hpSavedValue;
+	int ppSavedValue;
+
+	JLabel hpIconLabel;
+	JLabel ppIconLabel;
+	JLabel hpValueLabel;
+	JLabel ppValueLabel;
+	JLabel totalValueLabel;
 	ItemManager itemManager;
 
-	public SavingsPanel(ItemManager itemManager)
+	public SavingsPanel(ItemManager itemManager, HPItem hpItem, PPItem ppItem)
 	{
 		this.itemManager = itemManager;
+		this.hpItem = hpItem;
+		this.ppItem = ppItem;
 
+		initView();
+	}
+
+	private void initView()
+	{
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		setBorder(new EmptyBorder(8, 0, 8, 0));
@@ -38,101 +56,133 @@ public class SavingsPanel extends JPanel
 
 		add(Box.createRigidArea(new Dimension(0, 8)));
 
-		JPanel gridPanel = new JPanel();
-		gridPanel.setLayout(new GridLayout(2, 2, 16, 8));
-		gridPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		JPanel gp1 = new JPanel();
+		gp1.setLayout(new GridLayout(2, 2, 16, 8));
+		gp1.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		hpLabel = new JLabel();
-		hpLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		gridPanel.add(hpLabel);
+		hpIconLabel = new JLabel();
+		hpIconLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+		gp1.add(hpIconLabel);
 
-		hpValue = new JLabel();
-		hpValue.setFont(FontManager.getRunescapeSmallFont());
-		gridPanel.add(hpValue);
+		hpValueLabel = new JLabel();
+		hpValueLabel.setFont(FontManager.getRunescapeSmallFont());
+		gp1.add(hpValueLabel);
 
-		ppLabel = new JLabel();
-		ppLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-		gridPanel.add(ppLabel);
+		ppIconLabel = new JLabel();
+		ppIconLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+		gp1.add(ppIconLabel);
 
-		ppValue = new JLabel();
-		ppValue.setFont(FontManager.getRunescapeSmallFont());
-		gridPanel.add(ppValue);
+		ppValueLabel = new JLabel();
+		ppValueLabel.setFont(FontManager.getRunescapeSmallFont());
+		gp1.add(ppValueLabel);
 
-		add(gridPanel);
+		add(gp1);
+
+		add(Box.createRigidArea(new Dimension(0, 7)));
+
+		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+		separator.setMinimumSize(new Dimension(160, 2));
+		separator.setMaximumSize(new Dimension(160, 2));
+		add(separator);
+
+		add(Box.createRigidArea(new Dimension(0, 9)));
+
+		JPanel gp2 = new JPanel();
+		gp2.setLayout(new GridLayout(1, 2, 16, 8));
+		gp2.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		JLabel totalLabel = new JLabel("Total: ");
+		totalLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+		gp2.add(totalLabel);
+
+		totalValueLabel = new JLabel();
+		totalValueLabel.setFont(FontManager.getRunescapeSmallFont());
+		gp2.add(totalValueLabel);
+
+		add(gp2);
 	}
 
-	public void setHitpoints(int hitpoints, HPItem item)
+	public void setHPSaved(int hpSaved)
 	{
-		String itemName;
-		int itemId;
-		int hpPerItem;
-		switch (item)
-		{
-			case KARAMBWAN:
-				itemName = "Karambwan";
-				itemId = 3144;
-				hpPerItem = 18;
-				break;
-			case SHARK:
-				itemName = "Shark";
-				itemId = 385;
-				hpPerItem = 20;
-				break;
-			case MANTA_RAY:
-			default:
-				itemName = "Manta Ray";
-				itemId = 391;
-				hpPerItem = 22;
-				break;
-		}
-
-		int itemsRequired = Math.round((float) hitpoints / hpPerItem);
-
-		int pricePerItem = itemManager.getItemPrice(itemId);
-		int totalPrice = pricePerItem * itemsRequired;
-
-		AsyncBufferedImage itemImage = itemManager.getImage(itemId, itemsRequired, true);
-		itemImage.addTo(hpLabel);
-		hpLabel.setToolTipText(itemName + ": " + QuantityFormatter.quantityToStackSize(pricePerItem) + " gp each");
-		hpValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(totalPrice) + "</font> gp</html>");
+		this.hpSaved = hpSaved;
+		calculateHitpoints();
 	}
 
-	public void setPrayer(int prayer, int prayerLevel, PPItem item)
+	public void setHPItem(HPItem item)
 	{
-		String itemName;
-		int itemId;
-		int restorePerDose;
-		switch (item)
-		{
-			case PRAYER_POTION:
-				itemName = "Prayer potion(4)";
-				itemId = 2434;
-				restorePerDose = (prayerLevel / 4) + 7;
-				break;
-			case SUPER_RESTORE:
-				itemName = "Super restore(4)";
-				itemId = 3024;
-				restorePerDose = (prayerLevel / 4) + 8;
-				break;
-			case SANFEW_SERUM:
-			default:
-				itemName = "Sanfew serum(4)";
-				itemId = 10925;
-				restorePerDose = (prayerLevel * 3 / 10) + 4;
-				break;
-		}
+		this.hpItem = item;
+		calculateHitpoints();
+	}
+
+	public void setPPSaved(int ppSaved)
+	{
+		this.ppSaved = ppSaved;
+		calculatePrayer();
+	}
+
+	public void setPPItem(PPItem item)
+	{
+		this.ppItem = item;
+		calculatePrayer();
+	}
+
+	public void setPrayerLevel(int level)
+	{
+		this.prayerLevel = level;
+		calculatePrayer();
+	}
+
+	private void calculateHitpoints()
+	{
+		int itemsRequired = Math.round((float) hpSaved / hpItem.getHpPerItem());
+
+		int pricePerItem = itemManager.getItemPrice(hpItem.getId());
+		hpSavedValue = pricePerItem * itemsRequired;
+
+		AsyncBufferedImage itemImage = itemManager.getImage(hpItem.getId(), itemsRequired, true);
+		itemImage.addTo(hpIconLabel);
+		hpIconLabel.setToolTipText("<html>"
+			+ hpItem.getName()
+			+ ": <font color='white'>"
+			+ QuantityFormatter.quantityToStackSize(pricePerItem)
+			+ "</font> gp each</html>");
+		hpValueLabel.setText("<html>- <font color='white'>"
+			+ QuantityFormatter.quantityToStackSize(hpSavedValue)
+			+ "</font> gp</html>");
+
+		calculateTotal();
+	}
+
+	private void calculatePrayer()
+	{
+		int restorePerDose = ppItem.getRestorationFunction().apply(prayerLevel);
 
 		// On login, restore values are loaded from config before prayer level is determined
 		// Prevent incorrect potionsRequired from briefly displaying prior to determining prayer level
-		float dosesRequired = (float) prayer / restorePerDose;
+		float dosesRequired = (float) ppSaved / restorePerDose;
 		int potionsRequired = (prayerLevel > 0) ? Math.round(dosesRequired / 4) : 0;
 
-		int pricePerPotion = itemManager.getItemPrice(itemId);
-		int totalPrice = pricePerPotion * potionsRequired;
+		int pricePerPotion = itemManager.getItemPrice(ppItem.getId());
+		ppSavedValue = pricePerPotion * potionsRequired;
 
-		AsyncBufferedImage prayerImage = itemManager.getImage(itemId, potionsRequired, true);
-		prayerImage.addTo(ppLabel);
-		ppLabel.setToolTipText(itemName + ": " + QuantityFormatter.quantityToStackSize(pricePerPotion) + " gp each");
-		ppValue.setText("<html>- <font color='white'>" + QuantityFormatter.quantityToStackSize(totalPrice) + "</font> gp</html>");
+		AsyncBufferedImage prayerImage = itemManager.getImage(ppItem.getId(), potionsRequired, true);
+		prayerImage.addTo(ppIconLabel);
+		ppIconLabel.setToolTipText("<html>"
+			+ ppItem.getName()
+			+ ": <font color='white'>"
+			+ QuantityFormatter.quantityToStackSize(pricePerPotion)
+			+ "</font> gp each</html>");
+		ppValueLabel.setText("<html>- <font color='white'>"
+			+ QuantityFormatter.quantityToStackSize(ppSavedValue)
+			+ "</font> gp</html>");
+
+		calculateTotal();
+	}
+
+	private void calculateTotal()
+	{
+		totalValueLabel.setText("<html>- <font color='white'>"
+			+ QuantityFormatter.quantityToStackSize(hpSavedValue + ppSavedValue)
+			+ "</font> gp</html>");
 	}
 }

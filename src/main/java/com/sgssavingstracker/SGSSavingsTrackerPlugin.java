@@ -33,7 +33,6 @@ import net.runelite.client.util.ImageUtil;
 )
 public class SGSSavingsTrackerPlugin extends Plugin
 {
-	// SGS: 11806
 	public static final int SGS_ITEM_ID = 11806;
 	public static final String CONFIG_GROUP_NAME = "sgssavingstracker";
 	public static final String CONFIG_HITPOINTS_KEY = "hitpointsSaved";
@@ -63,8 +62,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		stats = new Stats();
 		panel = new SGSSavingsTrackerPanel(stats, itemManager, config);
 		clientThread.invokeLater(() -> {
-			panel.savingsPanel.setHitpoints(0, config.hpItem());
-			panel.savingsPanel.setPrayer(0, 0, config.ppItem());
+			panel.savingsPanel.setHPItem(config.hpItem());
+			panel.savingsPanel.setPPItem(config.ppItem());
 		});
 
 		stats.addPropertyChangeListener(event ->
@@ -139,7 +138,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		int previousSpecPercent = stats.getSpecPercent();
 		stats.setSpecPercent(event.getValue());
 
-		if (playerIsWieldingSGS() && stats.getSpecPercent() < previousSpecPercent)
+		if (playerIsWieldingSgs() && stats.getSpecPercent() < previousSpecPercent)
 		{
 			currentRestoreOccurrence = new RestoreOccurrence(
 				client.getTickCount(),
@@ -195,7 +194,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		stats.incrementPrayer(currentRestoreOccurrence.getSavedPrayer());
 	}
 
-	private boolean playerIsWieldingSGS()
+	private boolean playerIsWieldingSgs()
 	{
 		final ItemContainer equipmentItemContainer = client.getItemContainer(InventoryID.EQUIPMENT);
 		if (equipmentItemContainer == null)
@@ -218,8 +217,8 @@ public class SGSSavingsTrackerPlugin extends Plugin
 		if (event.getGroup().equals(CONFIG_GROUP_NAME))
 		{
 			clientThread.invokeLater(() -> {
-				panel.savingsPanel.setHitpoints(stats.getHitpoints(), config.hpItem());
-				panel.savingsPanel.setPrayer(stats.getPrayer(), stats.getPrayerLevel(), config.ppItem());
+				panel.savingsPanel.setHPItem(config.hpItem());
+				panel.savingsPanel.setPPItem(config.ppItem());
 			});
 		}
 	}
