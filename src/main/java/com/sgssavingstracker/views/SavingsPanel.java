@@ -19,21 +19,21 @@ import net.runelite.client.util.QuantityFormatter;
 
 public class SavingsPanel extends JPanel
 {
-	HPItem hpItem;
-	PPItem ppItem;
-	int hpSaved = 0;
-	int ppSaved = 0;
-	int prayerLevel = 0;
+	private final ItemManager itemManager;
 
-	int hpSavedGpValue;
-	int ppSavedGpValue;
+	private JLabel hpItemStackLabel;
+	private JLabel ppItemStackLabel;
+	private JLabel hpGpValueLabel;
+	private JLabel ppGpValueLabel;
+	private JLabel totalGpValueLabel;
 
-	JLabel hpItemStackLabel;
-	JLabel ppItemStackLabel;
-	JLabel hpGpValueLabel;
-	JLabel ppGpValueLabel;
-	JLabel totalGpValueLabel;
-	ItemManager itemManager;
+	private HPItem hpItem;
+	private PPItem ppItem;
+	private int hpSaved = 0;
+	private int ppSaved = 0;
+	private int prayerLevel = 0;
+	private int hpSavedGpValue;
+	private int ppSavedGpValue;
 
 	public SavingsPanel(ItemManager itemManager, HPItem hpItem, PPItem ppItem)
 	{

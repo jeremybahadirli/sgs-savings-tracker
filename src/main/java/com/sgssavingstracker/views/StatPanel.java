@@ -12,8 +12,8 @@ import net.runelite.client.ui.ColorScheme;
 
 public class StatPanel extends JPanel
 {
-	NumberFormat formatter = NumberFormat.getInstance();
-	JLabel valueLabel;
+	private final NumberFormat formatter = NumberFormat.getInstance();
+	private final JLabel valueLabel;
 
 	public StatPanel(BufferedImage image)
 	{

@@ -11,8 +11,8 @@ import net.runelite.client.util.ImageUtil;
 
 public class RestorePanel extends JPanel
 {
-	StatPanel hpPanel;
-	StatPanel ppPanel;
+	private final StatPanel hpPanel;
+	private final StatPanel ppPanel;
 
 	public RestorePanel()
 	{

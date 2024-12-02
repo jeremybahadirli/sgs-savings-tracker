@@ -16,9 +16,9 @@ import net.runelite.client.ui.components.PluginErrorPanel;
 
 public class SGSSavingsTrackerPanel extends PluginPanel
 {
-	Stats stats;
-	RestorePanel restorePanel;
-	SavingsPanel savingsPanel;
+	private final Stats stats;
+	private SavingsPanel savingsPanel;
+	private RestorePanel restorePanel;
 
 	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
@@ -66,7 +66,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(event -> {
-			final int result = JOptionPane.showOptionDialog(this,
+			int result = JOptionPane.showOptionDialog(this,
 				"<html>This will reset Hitpoints and Prayer Points to 0.<br>This action cannot be undone. Are you sure?</html>",
 				"Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, new String[]{"Yes", "No"}, "No");
@@ -82,7 +82,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		add(resetButton, c4);
 	}
 
-	void update(PropertyChangeEvent event)
+	public void update(PropertyChangeEvent event)
 	{
 		int newValue = (Integer) event.getNewValue();
 		switch (event.getPropertyName())
@@ -97,7 +97,18 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 				break;
 			case "prayerLevel":
 				savingsPanel.setPrayerLevel(newValue);
+				break;
 		}
+	}
+
+	public void setHpItem(HPItem hpItem)
+	{
+		savingsPanel.setHpItem(hpItem);
+	}
+
+	public void setPpItem(PPItem ppItem)
+	{
+		savingsPanel.setPpItem(ppItem);
 	}
 
 	private void resetClicked()
