@@ -3,13 +3,11 @@ package com.sgssavingstracker;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter
 public class RestoreOccurrence
 {
-	@Getter
 	private final int specTick;
-	@Getter
 	private final int previousHp;
-	@Getter
 	private final int previousPp;
 
 	private int expectedHp;
@@ -18,9 +16,7 @@ public class RestoreOccurrence
 	private int actualHp;
 	@Setter
 	private int actualPp;
-	@Getter
 	private int savedHp;
-	@Getter
 	private int savedPp;
 
 	public RestoreOccurrence(int specTick, int previousHp, int previousPp)
