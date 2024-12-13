@@ -16,17 +16,17 @@ import net.runelite.client.ui.components.PluginErrorPanel;
 
 public class SGSSavingsTrackerPanel extends PluginPanel
 {
-	Stats stats;
-	RestorePanel restorePanel;
-	SavingsPanel savingsPanel;
+	private final Stats stats;
+	private SavingsPanel savingsPanel;
+	private RestorePanel restorePanel;
 
-	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager)
+	SGSSavingsTrackerPanel(Stats stats, ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
 		this.stats = stats;
-		initView(itemManager);
+		initView(itemManager, config);
 	}
 
-	private void initView(ItemManager itemManager)
+	private void initView(ItemManager itemManager, SGSSavingsTrackerConfig config)
 	{
 		getParent().setLayout(new BorderLayout());
 		getParent().add(this, BorderLayout.CENTER);
@@ -51,7 +51,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		c1.insets = new Insets(32, 0, 32, 0);
 		add(restorePanel, c1);
 
-		savingsPanel = new SavingsPanel(itemManager);
+		savingsPanel = new SavingsPanel(itemManager, config.hpItem(), config.ppItem());
 		GridBagConstraints c2 = new GridBagConstraints();
 		c2.gridy = 3;
 		c2.weightx = 1;
@@ -66,7 +66,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(event -> {
-			final int result = JOptionPane.showOptionDialog(this,
+			int result = JOptionPane.showOptionDialog(this,
 				"<html>This will reset Hitpoints and Prayer Points to 0.<br>This action cannot be undone. Are you sure?</html>",
 				"Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, new String[]{"Yes", "No"}, "No");
@@ -82,22 +82,36 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		add(resetButton, c4);
 	}
 
-	void update(PropertyChangeEvent event)
+	public void update(PropertyChangeEvent event)
 	{
 		int newValue = (Integer) event.getNewValue();
 		switch (event.getPropertyName())
 		{
-			case "hitpoints":
-				restorePanel.setHitpoints(newValue);
-				savingsPanel.setSharks(newValue);
+			case "hp":
+				restorePanel.setHpSaved(newValue);
+				savingsPanel.setHpSaved(newValue);
 				break;
-			case "prayer":
-				restorePanel.setPrayer(newValue);
-				savingsPanel.setPotions(newValue, stats.getPrayerLevel());
+			case "pp":
+				restorePanel.setPpSaved(newValue);
+				savingsPanel.setPpSaved(newValue);
+				break;
+			case "hitpointsLevel":
+				savingsPanel.setHitpointsLevel(newValue);
 				break;
 			case "prayerLevel":
-				savingsPanel.setPotions(stats.getPrayer(), newValue);
+				savingsPanel.setPrayerLevel(newValue);
+				break;
 		}
+	}
+
+	public void setHpItem(HPItem hpItem)
+	{
+		savingsPanel.setHpItem(hpItem);
+	}
+
+	public void setPpItem(PPItem ppItem)
+	{
+		savingsPanel.setPpItem(ppItem);
 	}
 
 	private void resetClicked()
@@ -106,7 +120,7 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 		{
 			return;
 		}
-		stats.setHitpoints(0);
-		stats.setPrayer(0);
+		stats.setHpSaved(0);
+		stats.setPpSaved(0);
 	}
 }

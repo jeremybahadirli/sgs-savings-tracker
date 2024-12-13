@@ -4,56 +4,69 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-@ToString
+@Getter
 public class Stats
 {
 	private final PropertyChangeSupport support = new PropertyChangeSupport(this);
 
 	@Setter
-	@Getter
 	private int specPercent = 0;
-	@Getter
-	private int hitpoints = 0;
-	@Getter
-	private int prayer = 0;
-	@Getter
+	private int hpSaved = 0;
+	private int ppSaved = 0;
+	private int hitpointsLevel = 0;
 	private int prayerLevel = 0;
 
-	public void setHitpoints(int value)
+	public void setHpSaved(int value)
 	{
-		int previous = this.hitpoints;
-		this.hitpoints = value;
-		support.firePropertyChange("hitpoints", previous, this.hitpoints);
+		int previous = hpSaved;
+		hpSaved = value;
+		support.firePropertyChange("hp", previous, hpSaved);
 	}
 
-	public void setPrayer(int value)
+	public void incrementHpSaved(int value)
 	{
-		int previous = this.prayer;
-		this.prayer = value;
-		support.firePropertyChange("prayer", previous, this.prayer);
+		int previous = hpSaved;
+		hpSaved += value;
+		support.firePropertyChange("hp", previous, hpSaved);
+	}
+
+	public void setPpSaved(int value)
+	{
+		int previous = ppSaved;
+		ppSaved = value;
+		support.firePropertyChange("pp", previous, ppSaved);
+	}
+
+	public void incrementPpSaved(int value)
+	{
+		int previous = ppSaved;
+		ppSaved += value;
+		support.firePropertyChange("pp", previous, ppSaved);
+	}
+
+	public void setHitpointsLevel(int value)
+	{
+		if (value == hitpointsLevel)
+		{
+			return;
+		}
+
+		int previous = hitpointsLevel;
+		hitpointsLevel = value;
+		support.firePropertyChange("hitpointsLevel", previous, hitpointsLevel);
 	}
 
 	public void setPrayerLevel(int value)
 	{
-		int previous = this.prayerLevel;
-		this.prayerLevel = value;
-		support.firePropertyChange("prayerLevel", previous, this.prayerLevel);
-	}
+		if (value == prayerLevel)
+		{
+			return;
+		}
 
-	public void incrementHitpoints(int value)
-	{
-		int previous = this.hitpoints;
-		this.hitpoints += value;
-		support.firePropertyChange("hitpoints", previous, this.hitpoints);
-	}
-
-	public void incrementPrayer(int value)
-	{
-		int previous = this.prayer;
-		this.prayer += value;
-		support.firePropertyChange("prayer", previous, this.prayer);
+		int previous = prayerLevel;
+		prayerLevel = value;
+		support.firePropertyChange("prayerLevel", previous, prayerLevel);
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener)

@@ -2,45 +2,39 @@ package com.sgssavingstracker;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-@ToString
+@Getter
 public class RestoreOccurrence
 {
-	@Getter
 	private final int specTick;
-	@Getter
-	private final int previousHitpoints;
-	@Getter
-	private final int previousPrayer;
+	private final int previousHp;
+	private final int previousPp;
 
-	private int expectedHitpoints;
-	private int expectedPrayer;
+	private int expectedHp;
+	private int expectedPp;
 	@Setter
-	private int actualHitpoints;
+	private int actualHp;
 	@Setter
-	private int actualPrayer;
-	@Getter
-	private int savedHitpoints;
-	@Getter
-	private int savedPrayer;
+	private int actualPp;
+	private int savedHp;
+	private int savedPp;
 
-	public RestoreOccurrence(int specTick, int previousHitpoints, int previousPrayer)
+	public RestoreOccurrence(int specTick, int previousHp, int previousPp)
 	{
 		this.specTick = specTick;
-		this.previousHitpoints = previousHitpoints;
-		this.previousPrayer = previousPrayer;
+		this.previousHp = previousHp;
+		this.previousPp = previousPp;
 	}
 
 	public void computeExpected(int specDamage)
 	{
-		this.expectedHitpoints = Math.max(10, specDamage / 2);
-		this.expectedPrayer = Math.max(5, specDamage / 4);
+		this.expectedHp = Math.max(10, specDamage / 2);
+		this.expectedPp = Math.max(5, specDamage / 4);
 	}
 
 	public void computeSaved()
 	{
-		savedHitpoints = Math.min(actualHitpoints, expectedHitpoints);
-		savedPrayer = Math.min(actualPrayer, expectedPrayer);
+		savedHp = Math.min(actualHp, expectedHp);
+		savedPp = Math.min(actualPp, expectedPp);
 	}
 }
