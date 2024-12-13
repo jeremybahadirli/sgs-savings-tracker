@@ -31,6 +31,7 @@ public class SavingsPanel extends JPanel
 	private PPItem ppItem;
 	private int hpSaved = 0;
 	private int ppSaved = 0;
+	private int hitpointsLevel = 0;
 	private int prayerLevel = 0;
 	private int hpSavedGpValue;
 	private int ppSavedGpValue;
@@ -126,6 +127,12 @@ public class SavingsPanel extends JPanel
 		calculatePp();
 	}
 
+	public void setHitpointsLevel(int level)
+	{
+		this.hitpointsLevel = level;
+		calculateHp();
+	}
+
 	public void setPrayerLevel(int level)
 	{
 		this.prayerLevel = level;
@@ -134,7 +141,10 @@ public class SavingsPanel extends JPanel
 
 	private void calculateHp()
 	{
-		int itemsRequired = Math.round((float) hpSaved / hpItem.getHpPerItem());
+		int restorePerDose = hpItem.getRestorationFunction().apply(hitpointsLevel);
+
+		float dosesRequired = (float) hpSaved / restorePerDose;
+		int itemsRequired = (hitpointsLevel > 0) ? Math.round(dosesRequired / hpItem.getDosesPerItem()) : 0;
 
 		int gpValuePerItem = itemManager.getItemPrice(hpItem.getId());
 		hpSavedGpValue = gpValuePerItem * itemsRequired;
@@ -157,10 +167,8 @@ public class SavingsPanel extends JPanel
 	{
 		int restorePerDose = ppItem.getRestorationFunction().apply(prayerLevel);
 
-		// On login, restore values are loaded from config before prayer level is determined
-		// Prevent incorrect itemsRequired from briefly displaying prior to determining prayer level
 		float dosesRequired = (float) ppSaved / restorePerDose;
-		int itemsRequired = (prayerLevel > 0) ? Math.round(dosesRequired / 4) : 0;
+		int itemsRequired = (prayerLevel > 0) ? Math.round(dosesRequired / ppItem.getDosesPerItem()) : 0;
 
 		int gpValuePerItem = itemManager.getItemPrice(ppItem.getId());
 		ppSavedGpValue = gpValuePerItem * itemsRequired;

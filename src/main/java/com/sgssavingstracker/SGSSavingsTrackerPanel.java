@@ -95,6 +95,9 @@ public class SGSSavingsTrackerPanel extends PluginPanel
 				restorePanel.setPpSaved(newValue);
 				savingsPanel.setPpSaved(newValue);
 				break;
+			case "hitpointsLevel":
+				savingsPanel.setHitpointsLevel(newValue);
+				break;
 			case "prayerLevel":
 				savingsPanel.setPrayerLevel(newValue);
 				break;
