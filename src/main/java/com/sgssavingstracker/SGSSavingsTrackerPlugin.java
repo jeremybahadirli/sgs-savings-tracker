@@ -1,6 +1,7 @@
 package com.sgssavingstracker;
 
 import com.google.inject.Provides;
+import java.util.Arrays;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -33,7 +34,7 @@ import net.runelite.client.util.ImageUtil;
 )
 public class SGSSavingsTrackerPlugin extends Plugin
 {
-	static final int SGS_ITEM_ID = 11806;
+	static final int[] SGS_ITEM_IDS = {11806, 20372};
 	static final String CONFIG_GROUP_NAME = "sgssavingstracker";
 	static final String CONFIG_HP_KEY = "hitpointsSaved";
 	static final String CONFIG_PP_KEY = "prayerSaved";
@@ -205,7 +206,7 @@ public class SGSSavingsTrackerPlugin extends Plugin
 			return false;
 		}
 
-		return weaponSlotItem.getId() == SGS_ITEM_ID;
+		return Arrays.stream(SGS_ITEM_IDS).anyMatch(id -> id == weaponSlotItem.getId());
 	}
 
 	@Subscribe
