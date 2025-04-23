@@ -5,7 +5,7 @@ Track Hitpoints and Prayer saved by using the Saradomin Godsword Special Attack.
 View your GP savings in terms of items, such as Sharks and Prayer Potions.
 
 ### Update v1.1:
-- In the plugin config, users may now select which items to dislpay for GP savings.
+- In the plugin config, users may now select which items to display for GP savings.
   - HP items: Karambwan, Shark, Manta Ray, Saradomin Brew
   - PP items: Prayer Potion, Super Restore, Sanfew Serum
 - Now displays total GP savings
